@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Pitch Desk</title>
+<meta name="description" content="A student stock pitch board. Post a pitch, make the call, and let other students vote and push back on your thesis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F5F8; --card:#FFFFFF; --ink:#101B2D; --muted:#56637A; --line:#DCE2EB; --accent:#1C3F78; --accent-ink:#FFFFFF; --field:#F8FAFC;
+  --buy:#17734F; --buy-bg:#E1F2E9; --hold:#8C5B0D; --hold-bg:#FAEFD9; --sell:#A93232; --sell-bg:#F8E3E3;
+  --display:"Bricolage Grotesque", "Public Sans", system-ui, sans-serif;
+  --body:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0B121D; --card:#121C2B; --ink:#E6EBF2; --muted:#9FABBE; --line:#24324A; --accent:#8DB0EC; --accent-ink:#0B121D; --field:#0F1826;
+  --buy:#5CC89A; --buy-bg:#123027; --hold:#E7B565; --hold-bg:#33270F; --sell:#EE8A8A; --sell-bg:#3A1A1C; color-scheme:dark}}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;margin:0}
+.band,.main,.foot{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.inner{max-width:1080px;margin:0 auto}
+.band{background:var(--card);border-bottom:1px solid var(--line);padding-block:28px 24px}
+.band .inner{display:grid;gap:22px}
+.brand{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2.1rem,5.5vw,3.2rem);line-height:1;letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 span{color:var(--accent)}
+.tag{color:var(--muted);max-width:52ch;margin:8px 0 0}
+.who{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.9rem}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line)}
+.stat{padding:12px 16px;display:grid;gap:2px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{font-family:var(--mono);font-weight:500;font-size:1.5rem;font-variant-numeric:tabular-nums}
+.lbl{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.main{padding-block:28px 48px}
+.main .inner{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start}
+.feed{display:grid;gap:16px;min-width:0}
+.toolbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.seg{display:flex;border:1px solid var(--line);background:var(--card)}
+.seg button{border:0;background:none;color:var(--muted);font:500 .85rem var(--body);padding:7px 12px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+select,input,textarea{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:3px;padding:8px 10px;width:100%}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.toolbar select{width:auto;background:var(--card)}
+#list{display:grid;gap:16px}
+.ticket{background:var(--card);border:1px solid var(--line);display:grid;grid-template-columns:6px minmax(0,1fr)}
+.ticket .rail{background:var(--line)}
+.ticket[data-r="Buy"] .rail{background:var(--buy)}
+.ticket[data-r="Hold"] .rail{background:var(--hold)}
+.ticket[data-r="Sell"] .rail{background:var(--sell)}
+.tk-body{padding:18px 20px;display:grid;gap:12px;min-width:0}
+.tk-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.sym{font-family:var(--mono);font-weight:500;font-size:1.25rem;letter-spacing:.04em}
+.co{color:var(--muted);font-size:.92rem}
+.chip{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:2px;white-space:nowrap}
+.chip.Buy{background:var(--buy-bg);color:var(--buy)}.chip.Hold{background:var(--hold-bg);color:var(--hold)}.chip.Sell{background:var(--sell-bg);color:var(--sell)}
+.meta{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:.84rem;color:var(--muted)}
+.meta .mono{font-family:var(--mono);color:var(--ink)}
+.thesis{margin:0;max-width:68ch;white-space:pre-wrap;overflow-wrap:anywhere}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kv div{display:grid;gap:2px}
+.kv p{margin:0;font-size:.92rem;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.vote{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.vote-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vbtn{border:1px solid var(--line);background:none;color:var(--ink);font:500 .82rem var(--body);padding:5px 12px;border-radius:3px;cursor:pointer}
+.vbtn[data-v="Buy"][aria-pressed="true"]{background:var(--buy-bg);color:var(--buy);border-color:var(--buy)}
+.vbtn[data-v="Hold"][aria-pressed="true"]{background:var(--hold-bg);color:var(--hold);border-color:var(--hold)}
+.vbtn[data-v="Sell"][aria-pressed="true"]{background:var(--sell-bg);color:var(--sell);border-color:var(--sell)}
+.vbtn:disabled{opacity:.5;cursor:default}
+.bar{display:flex;height:8px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%}
+.bar .b{background:var(--buy)}.bar .h{background:var(--hold)}.bar .s{background:var(--sell)}
+.tally{font-family:var(--mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.linkbtn{background:none;border:0;color:var(--accent);font:500 .85rem var(--body);padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.linkbtn.danger{color:var(--sell)}
+.thread{display:grid;gap:10px;border-top:1px dashed var(--line);padding-top:12px}
+.cmt{display:grid;gap:2px;font-size:.92rem}
+.cmt b{font-weight:600;font-size:.85rem}
+.cmt p{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.cmt-form{display:flex;gap:8px}
+.cmt-form input{flex:1;min-width:0}
+.side{display:grid;gap:16px;position:sticky;top:16px}
+.panel{background:var(--card);border:1px solid var(--line);padding:18px 20px;display:grid;gap:12px}
+h2{font-family:var(--display);font-weight:700;font-size:1.3rem;margin:0;letter-spacing:-.01em}
+form{display:grid;gap:10px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:grid;gap:4px;font-size:.82rem;font-weight:500;color:var(--muted)}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:3px;font:600 .92rem var(--body);padding:10px 14px;cursor:pointer}
+.primary:disabled{opacity:.55;cursor:default}
+.ghost{background:none;color:var(--ink);border:1px solid var(--line);border-radius:3px;font:500 .88rem var(--body);padding:8px 12px;cursor:pointer}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+.err{font-size:.82rem;color:var(--sell);margin:0}
+.rules{margin:0;padding-left:1.1rem;color:var(--muted);font-size:.9rem;display:grid;gap:6px}
+.empty{background:var(--card);border:1px dashed var(--line);padding:36px 24px;text-align:center;display:grid;gap:6px;justify-items:center}
+.empty h3{font-family:var(--display);margin:0;font-size:1.2rem}
+.empty p{margin:0;color:var(--muted);max-width:44ch}
+.foot{padding-block:0 40px;color:var(--muted);font-size:.82rem}
+.foot .inner{border-top:1px solid var(--line);padding-top:16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.foot code{font-family:var(--mono);overflow-wrap:anywhere}
+@media (max-width:860px){.main .inner{grid-template-columns:1fr}.side{position:static;order:-1}}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:nth-child(2){border-right:0}.stat:nth-child(-n+2){border-bottom:1px solid var(--line)}.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="band">
+  <div class="inner">
+    <div class="brand">
+      <div>
+        <div class="lbl">Student equity research</div>
+        <h1>The Pitch <span>Desk</span></h1>
+        <p class="tag">Post a stock pitch, make the call, and let other students vote and push back on your thesis.</p>
+      </div>
+      <div class="who" id="who">
+        <button class="primary" type="button" id="signin">Sign in with Google</button>
+      </div>
+    </div>
+    <div class="stats" aria-label="Desk statistics">
+      <div class="stat"><span class="lbl">Pitches</span><b id="s-pitches">0</b></div>
+      <div class="stat"><span class="lbl">Members</span><b id="s-members">0</b></div>
+      <div class="stat"><span class="lbl">Votes cast</span><b id="s-votes">0</b></div>
+      <div class="stat"><span class="lbl">Comments</span><b id="s-comments">0</b></div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="inner">
+    <section class="feed" aria-label="Pitches">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Filter by call">
+          <button type="button" data-f="All" aria-pressed="true">All</button>
+          <button type="button" data-f="Buy" aria-pressed="false">Buy</button>
+          <button type="button" data-f="Hold" aria-pressed="false">Hold</button>
+          <button type="button" data-f="Sell" aria-pressed="false">Sell</button>
+        </div>
+        <select id="sort" aria-label="Sort pitches">
+          <option value="new">Newest</option>
+          <option value="votes">Most votes</option>
+          <option value="talk">Most discussed</option>
+        </select>
+      </div>
+      <div id="list">
+        <div class="empty"><h3>Loading the desk</h3><p>Pitches from members appear here.</p></div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="panel">
+        <h2>Post a pitch</h2>
+        <form id="pitch-form" novalidate>
+          <div class="row2">
+            <label for="f-ticker">Ticker<input id="f-ticker" maxlength="6" placeholder="KO" autocomplete="off"></label>
+            <label for="f-rating">Your call
+              <select id="f-rating"><option>Buy</option><option>Hold</option><option>Sell</option></select>
+            </label>
+          </div>
+          <label for="f-company">Company<input id="f-company" maxlength="60" placeholder="The Coca-Cola Company"></label>
+          <div class="row2">
+            <label for="f-target">Price target ($)<input id="f-target" inputmode="decimal" placeholder="Optional"></label>
+            <label for="f-horizon">Horizon
+              <select id="f-horizon"><option>6 months</option><option selected>12 months</option><option>2–3 years</option><option>5+ years</option></select>
+            </label>
+          </div>
+          <label for="f-thesis">Thesis<textarea id="f-thesis" rows="4" maxlength="800" placeholder="Why is the market mispricing this stock?"></textarea></label>
+          <label for="f-catalysts">Catalysts<textarea id="f-catalysts" rows="2" maxlength="300" placeholder="What will make the market see it?"></textarea></label>
+          <label for="f-risks">Key risks<textarea id="f-risks" rows="2" maxlength="300" placeholder="What would prove you wrong?"></textarea></label>
+          <p class="err" id="f-err" hidden></p>
+          <button class="primary" type="submit" id="f-submit">Post pitch</button>
+          <p class="hint" id="f-note">Sign in with Google to post, vote, and comment.</p>
+        </form>
+      </div>
+      <div class="panel">
+        <h2>Desk rules</h2>
+        <ul class="rules">
+          <li>One stock per pitch, with a clear buy, hold, or sell call.</li>
+          <li>Back the thesis with numbers: multiples, margins, or a DCF.</li>
+          <li>Always name the risks that would break your case.</li>
+          <li>Challenge ideas, not people. This is for learning, not investment advice.</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="inner">
+    <span>The Pitch Desk · Student-run. Not investment advice.</span>
+    <span id="uid-line" hidden>Your user ID: <code id="uid"></code></span>
+  </div>
+</footer>
+
+<script type="module">
+// ── 1. PASTE YOUR FIREBASE CONFIG HERE (Firebase console → Project settings → Your apps → Web app) ──
+const firebaseConfig = {
+  apiKey: "AIzaSyBbO2wbWTkmxwwLRM1rW7Dtma8eYH84C1w",
+  authDomain: "pitch-desk-c8801.firebaseapp.com",
+  projectId: "pitch-desk-c8801",
+  storageBucket: "pitch-desk-c8801.firebasestorage.app",
+  messagingSenderId: "940489532604",
+  appId: "1:940489532604:web:a4e8ee947fda57271d9cb9"
+};
+// ── 2. PASTE YOUR USER ID HERE after you sign in once (it shows at the bottom of the page). Admins can remove any pitch or comment. ──
+const ADMIN_UIDS = ["PASTE_YOUR_UID"];
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const RATINGS = ["Buy","Hold","Sell"];
+const state = { pitches: [], votes: [], comments: [], user: null, filter: "All", sort: "new", open: new Set(), ready: false };
+
+if (firebaseConfig.apiKey.startsWith("PASTE")) {
+  $("list").innerHTML = `<div class="empty"><h3>Almost ready</h3><p>Paste your Firebase config into index.html to connect the desk. See the setup guide.</p></div>`;
+  throw new Error("Firebase config missing");
+}
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const ms = t => (t && typeof t.toMillis === "function") ? t.toMillis() : Date.now();
+const fmtDate = t => new Date(ms(t)).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+const isAdmin = () => !!state.user && ADMIN_UIDS.includes(state.user.uid);
+
+function renderWho() {
+  const u = state.user;
+  $("who").innerHTML = u
+    ? `<span>Signed in as <b>${esc(u.displayName || "Member")}</b></span><button class="ghost" type="button" id="signout">Sign out</button>`
+    : `<button class="primary" type="button" id="signin">Sign in with Google</button>`;
+  $("uid-line").hidden = !u;
+  if (u) $("uid").textContent = u.uid;
+  $("f-note").textContent = u ? "Pitches are visible to everyone on the desk." : "Sign in with Google to post, vote, and comment.";
+}
+$("who").addEventListener("click", async e => {
+  if (e.target.id === "signin") { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (err) { console.error(err); } }
+  if (e.target.id === "signout") await signOut(auth);
+});
+onAuthStateChanged(auth, u => { state.user = u; renderWho(); render(); });
+
+function render() {
+  const ids = new Set(state.pitches.map(p => p.id));
+  const votes = state.votes.filter(v => ids.has(v.pitchId));
+  const comments = state.comments.filter(c => ids.has(c.pitchId));
+  const members = new Set([...state.pitches.map(p => p.uid), ...votes.map(v => v.uid), ...comments.map(c => c.uid)]);
+  $("s-pitches").textContent = state.pitches.length;
+  $("s-members").textContent = members.size;
+  $("s-votes").textContent = votes.length;
+  $("s-comments").textContent = comments.length;
+  if (!state.ready) return;
+
+  const tally = id => { const t = { Buy: 0, Hold: 0, Sell: 0 }; votes.forEach(v => { if (v.pitchId === id && t[v.v] !== undefined) t[v.v]++; }); return t; };
+  const thread = id => comments.filter(c => c.pitchId === id).sort((a, b) => ms(a.createdAt) - ms(b.createdAt));
+  const total = t => t.Buy + t.Hold + t.Sell;
+  let rows = state.pitches.map(p => ({ p, t: tally(p.id), c: thread(p.id) }));
+  if (state.filter !== "All") rows = rows.filter(r => r.p.rating === state.filter);
+  rows.sort((a, b) => state.sort === "votes" ? total(b.t) - total(a.t) || ms(b.p.createdAt) - ms(a.p.createdAt)
+    : state.sort === "talk" ? b.c.length - a.c.length || ms(b.p.createdAt) - ms(a.p.createdAt)
+    : ms(b.p.createdAt) - ms(a.p.createdAt));
+
+  const host = $("list");
+  if (!rows.length) {
+    host.innerHTML = state.pitches.length
+      ? `<div class="empty"><h3>No ${esc(state.filter.toLowerCase())} calls yet</h3><p>Try another filter, or post one yourself.</p></div>`
+      : `<div class="empty"><h3>The desk is open</h3><p>No pitches yet. Sign in and post the first one, then share the link so classmates can vote and comment.</p></div>`;
+    return;
+  }
+  const me = state.user && state.user.uid;
+  const myVote = id => (votes.find(v => v.pitchId === id && v.uid === me) || {}).v;
+  host.innerHTML = rows.map(({ p, t, c }) => {
+    const n = total(t), pct = k => n ? (t[k] / n * 100).toFixed(1) : 0;
+    const canDel = me && (p.uid === me || isAdmin());
+    const open = state.open.has(p.id);
+    const mv = myVote(p.id);
+    return `<article class="ticket" data-r="${esc(p.rating)}">
+      <div class="rail" aria-hidden="true"></div>
+      <div class="tk-body">
+        <div class="tk-head">
+          <div><div class="sym">${esc(p.ticker)}</div><div class="co">${esc(p.company)}</div></div>
+          <span class="chip ${esc(p.rating)}">${esc(p.rating)}</span>
+        </div>
+        <div class="meta">
+          <span>By ${esc(p.uid === me ? "You" : p.authorName || "Member")}</span><span>${fmtDate(p.createdAt)}</span>
+          ${p.target ? `<span>Target <span class="mono">$${esc(p.target)}</span></span>` : ""}
+          <span>Horizon <span class="mono">${esc(p.horizon)}</span></span>
+        </div>
+        <p class="thesis">${esc(p.thesis)}</p>
+        ${(p.catalysts || p.risks) ? `<div class="kv">
+          ${p.catalysts ? `<div><span class="lbl">Catalysts</span><p>${esc(p.catalysts)}</p></div>` : ""}
+          ${p.risks ? `<div><span class="lbl">Key risks</span><p>${esc(p.risks)}</p></div>` : ""}
+        </div>` : ""}
+        <div class="vote">
+          <div class="vote-row">
+            <span class="lbl" style="margin-right:4px">Desk vote</span>
+            ${RATINGS.map(r => `<button type="button" class="vbtn" data-act="vote" data-id="${esc(p.id)}" data-v="${r}" aria-pressed="${mv === r}" ${me ? "" : "disabled"}>${r}</button>`).join("")}
+          </div>
+          <div class="bar" role="img" aria-label="${t.Buy} buy, ${t.Hold} hold, ${t.Sell} sell"><i class="b" style="width:${pct("Buy")}%"></i><i class="h" style="width:${pct("Hold")}%"></i><i class="s" style="width:${pct("Sell")}%"></i></div>
+          <div class="tally">${t.Buy} buy · ${t.Hold} hold · ${t.Sell} sell</div>
+        </div>
+        <div class="vote-row">
+          <button type="button" class="linkbtn" data-act="toggle" data-id="${esc(p.id)}" aria-expanded="${open}">${open ? "Hide" : "Show"} discussion (${c.length})</button>
+          ${canDel ? `<button type="button" class="linkbtn danger" data-act="del" data-id="${esc(p.id)}">Remove pitch</button>` : ""}
+        </div>
+        ${open ? `<div class="thread">
+          ${c.length ? c.map(x => `<div class="cmt"><b>${esc(x.uid === me ? "You" : x.authorName || "Member")}</b><p>${esc(x.text)}</p>${me && (x.uid === me || isAdmin()) ? `<button type="button" class="linkbtn danger" data-act="delc" data-id="${esc(x.id)}" style="justify-self:start;font-size:.78rem">Delete</button>` : ""}</div>`).join("") : `<p class="hint">No comments yet. Ask about the assumptions.</p>`}
+          ${me ? `<form class="cmt-form" data-id="${esc(p.id)}"><input maxlength="400" placeholder="Add a comment" aria-label="Add a comment"><button class="primary" type="submit">Post</button></form>` : `<p class="hint">Sign in to join the discussion.</p>`}
+        </div>` : ""}
+      </div>
+    </article>`;
+  }).join("");
+}
+
+document.querySelector(".seg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-f]"); if (!b) return;
+  state.filter = b.dataset.f;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  render();
+});
+$("sort").addEventListener("change", e => { state.sort = e.target.value; render(); });
+
+$("list").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const id = b.dataset.id, me = state.user && state.user.uid;
+  if (b.dataset.act === "toggle") { state.open.has(id) ? state.open.delete(id) : state.open.add(id); render(); return; }
+  if (!me) return;
+  try {
+    if (b.dataset.act === "vote") {
+      const ref = doc(db, "votes", id + "_" + me);
+      const cur = state.votes.find(v => v.pitchId === id && v.uid === me);
+      if (cur && cur.v === b.dataset.v) await deleteDoc(ref);
+      else await setDoc(ref, { pitchId: id, uid: me, v: b.dataset.v });
+    }
+    if (b.dataset.act === "del" || b.dataset.act === "delc") {
+      if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "Confirm remove"; return; }
+      await deleteDoc(doc(db, b.dataset.act === "del" ? "pitches" : "comments", id));
+    }
+  } catch (err) { console.error(err); }
+});
+
+$("list").addEventListener("submit", async e => {
+  const f = e.target.closest("form.cmt-form"); if (!f) return;
+  e.preventDefault();
+  const inp = f.querySelector("input"), text = inp.value.trim();
+  if (!text || !state.user) return;
+  inp.value = "";
+  try {
+    await addDoc(collection(db, "comments"), { pitchId: f.dataset.id, uid: state.user.uid, authorName: (state.user.displayName || "Member").slice(0, 80), text, createdAt: serverTimestamp() });
+  } catch (err) { inp.value = text; console.error(err); }
+});
+
+$("pitch-form").addEventListener("input", () => { $("f-err").hidden = true; });
+$("pitch-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("f-err"), fail = m => { err.textContent = m; err.hidden = false; };
+  if (!state.user) return fail("Sign in with Google to post a pitch.");
+  const ticker = $("f-ticker").value.trim().toUpperCase().replace(/[^A-Z.]/g, "");
+  const company = $("f-company").value.trim();
+  const thesis = $("f-thesis").value.trim();
+  const tgtRaw = $("f-target").value.trim().replace(/[$,]/g, "");
+  if (!ticker) return fail("Enter a ticker symbol, like KO.");
+  if (!company) return fail("Enter the company name.");
+  if (thesis.length < 40) return fail("Write at least a couple of sentences for the thesis.");
+  let target = "";
+  if (tgtRaw) { const n = Number(tgtRaw); if (!isFinite(n) || n <= 0) return fail("Enter the price target as a number, like 72.50."); target = n.toFixed(2); }
+  $("f-submit").disabled = true;
+  try {
+    await addDoc(collection(db, "pitches"), {
+      uid: state.user.uid, authorName: (state.user.displayName || "Member").slice(0, 80),
+      ticker, company, rating: $("f-rating").value, target, horizon: $("f-horizon").value,
+      thesis, catalysts: $("f-catalysts").value.trim(), risks: $("f-risks").value.trim(),
+      createdAt: serverTimestamp()
+    });
+    ["f-ticker","f-company","f-target","f-thesis","f-catalysts","f-risks"].forEach(id => $(id).value = "");
+    $("f-note").textContent = "Posted. Share the link so others can vote.";
+  } catch (ex) { console.error(ex); fail("Couldn't post right now. Check your connection and try again."); }
+  finally { $("f-submit").disabled = false; }
+});
+
+const listen = (name, key) => onSnapshot(collection(db, name),
+  snap => { state[key] = snap.docs.map(d => ({ id: d.id, ...d.data() })); state.ready = true; render(); },
+  err => { console.error(err); state.ready = true; render(); });
+listen("pitches", "pitches"); listen("votes", "votes"); listen("comments", "comments");
+renderWho();
+</script>
+</body>
+</html>
